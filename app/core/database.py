@@ -17,12 +17,17 @@ async def connect_db() -> None:
     _client = AsyncIOMotorClient(
         settings.MONGODB_URL,
         serverSelectionTimeoutMS=5000,
-        maxPoolSize=20,
-        minPoolSize=5,
+        maxPoolSize=10,
+        minPoolSize=0,
     )
-    # Verify connection
-    await _client.admin.command("ping")
-    print(f"[OK] MongoDB connected -> {settings.DATABASE_NAME}")
+    try:
+        # Verify connection (max 5s)
+        await _client.admin.command("ping")
+        print(f"[OK] MongoDB connected -> {settings.DATABASE_NAME}")
+    except Exception as e:
+        print(f"[ERROR] MongoDB connection failed: {e}")
+        # Note: We don't raise here so the app can still boot, 
+        # allowing you to see logs or use parts of the app that don't need DB.
 
 
 async def close_db() -> None:
