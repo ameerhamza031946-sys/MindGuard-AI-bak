@@ -45,27 +45,30 @@ def get_db() -> AsyncIOMotorDatabase:
 
 async def create_indexes() -> None:
     """Create all necessary MongoDB indexes for performance & uniqueness."""
-    db = get_db()
+    try:
+        db = get_db()
 
-    # Users
-    await db.users.create_index("email", unique=True)
-    await db.users.create_index("created_at")
+        # Users
+        await db.users.create_index("email", unique=True)
+        await db.users.create_index("created_at")
 
-    # Token blacklist (auto-expire via TTL)
-    await db.token_blacklist.create_index(
-        "expires_at", expireAfterSeconds=0
-    )
+        # Token blacklist (auto-expire via TTL)
+        await db.token_blacklist.create_index(
+            "expires_at", expireAfterSeconds=0
+        )
 
-    # Checkins
-    await db.checkins.create_index([("user_id", 1), ("created_at", -1)])
+        # Checkins
+        await db.checkins.create_index([("user_id", 1), ("created_at", -1)])
 
-    # Chat messages
-    await db.chat_messages.create_index([("user_id", 1), ("created_at", -1)])
+        # Chat messages
+        await db.chat_messages.create_index([("user_id", 1), ("created_at", -1)])
 
-    # Rate limit / login attempts
-    await db.login_attempts.create_index(
-        "expires_at", expireAfterSeconds=0
-    )
-    await db.login_attempts.create_index("email")
+        # Rate limit / login attempts
+        await db.login_attempts.create_index(
+            "expires_at", expireAfterSeconds=0
+        )
+        await db.login_attempts.create_index("email")
 
-    print("[OK] MongoDB indexes created")
+        print("[OK] MongoDB indexes created")
+    except Exception as e:
+        print(f"[WARNING] Could not create MongoDB indexes: {e}")
